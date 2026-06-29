@@ -72,9 +72,9 @@ Ada 5 exercise utama yang harus diselesaikan. Codebase sudah bisa di-compile dar
   chmod +x mvnw
   ```
 2. Jalankan seluruh test lewat Maven Wrapper:
-   ```bash
+  ```bash
   ./mvnw clean test
-   ```
+  ```
 3. Pada boilerplate awal, beberapa test memang akan gagal. Target kamu adalah buat semua test di `WalletServiceTest` dan `WalletControllerTest` jadi pass.
 
 Semoga berhasil.
