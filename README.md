@@ -69,9 +69,8 @@ Ada 5 exercise utama yang harus diselesaikan. Codebase sudah bisa di-compile dar
 
 1. Jalankan seluruh test:
    ```bash
-  # Jalankan semua unit test
    mvn clean test
    ```
-2. Pada boilerplate awal, beberapa test memang akan gagal. Target kamu adalah bikin semua test di `WalletServiceTest` dan `WalletControllerTest` jadi pass.
+2. Pada boilerplate awal, beberapa test memang akan gagal. Target kamu adalah buat semua test di `WalletServiceTest` dan `WalletControllerTest` jadi pass.
 
 Semoga berhasil.
