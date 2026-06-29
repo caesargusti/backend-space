@@ -19,7 +19,7 @@ Sistem perlu support hal-hal berikut:
 ## Tech Stack
 - **Java 21** (required environment, tapi penggunaan fitur sintaks khusus Java 21 itu opsional. Kamu tetap boleh pakai gaya Java 8/11/17).
 - **Spring Boot 3.3.0**
-- **Maven**
+- **Maven Wrapper** (`./mvnw`)
 - **H2 In-Memory Database** (Spring Data JPA / Hibernate)
 - **JUnit 5 & Mockito**
 
@@ -67,10 +67,14 @@ Ada 5 exercise utama yang harus diselesaikan. Codebase sudah bisa di-compile dar
 
 ## Cara Menjalankan & Verifikasi
 
-1. Jalankan seluruh test:
+1. (Opsional, sekali saja di macOS/Linux) pastikan file wrapper executable:
+  ```bash
+  chmod +x mvnw
+  ```
+2. Jalankan seluruh test lewat Maven Wrapper:
    ```bash
-   mvn clean test
+  ./mvnw clean test
    ```
-2. Pada boilerplate awal, beberapa test memang akan gagal. Target kamu adalah buat semua test di `WalletServiceTest` dan `WalletControllerTest` jadi pass.
+3. Pada boilerplate awal, beberapa test memang akan gagal. Target kamu adalah buat semua test di `WalletServiceTest` dan `WalletControllerTest` jadi pass.
 
 Semoga berhasil.
