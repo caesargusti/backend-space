@@ -78,4 +78,35 @@ Ada 5 tasks yang harus diselesaikan. Codebase sudah bisa di-compile dari awal, t
   ```
 3. Di awal unit testnya memang akan gagal. Goal kandidat adalah membuat semua test di `WalletServiceTest` dan `WalletControllerTest` jadi sukses.
 
+## Akses H2 dari DB Client (DBeaver / Terminal)
+
+H2 pada project ini berjalan sebagai in-memory database, dan sudah diekspos via TCP agar bisa diakses dari DB client eksternal.
+
+Catatan penting:
+- Aplikasi Spring Boot harus dalam kondisi running saat melakukan koneksi.
+- Karena in-memory, data akan hilang saat aplikasi dihentikan.
+
+1. Jalankan aplikasi:
+  ```bash
+  ./mvnw spring-boot:run
+  ```
+
+2. Parameter koneksi untuk DBeaver:
+- Driver: H2
+- URL: jdbc:h2:tcp://localhost:9092/mem:walletdb
+- Username: sa
+- Password: (kosong)
+
+3. Akses dari terminal (H2 Shell):
+  ```bash
+  H2_JAR=$(ls ~/.m2/repository/com/h2database/h2/*/h2-*.jar | tail -n 1)
+  java -cp "$H2_JAR" \
+    org.h2.tools.Shell \
+    -url jdbc:h2:tcp://localhost:9092/mem:walletdb \
+    -user sa
+  ```
+
+4. Opsi jika ingin membatasi akses hanya lokal:
+- Ubah `wallet.h2.tcp.allow-others=false` di `application.properties`.
+
 Good luck.
