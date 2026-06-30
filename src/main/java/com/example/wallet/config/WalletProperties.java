@@ -1,5 +1,6 @@
 package com.example.wallet.config;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.util.Map;
@@ -7,6 +8,7 @@ import java.util.Map;
 // TODO: Lengkapi class ini agar bisa melakukan binding properti dengan prefix "wallet" dari application.properties.
 // Hint: Kamu perlu anotasi seperti @ConfigurationProperties (dengan prefix = "wallet") untuk melakukan binding konfigurasi.
 @Component
+@ConfigurationProperties(prefix = "wallet")
 public class WalletProperties {
 
     private BigDecimal minSpendAmount = BigDecimal.ZERO;

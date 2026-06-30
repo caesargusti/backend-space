@@ -7,11 +7,13 @@ import com.example.wallet.model.*;
 import com.example.wallet.repository.TransactionRepository;
 import com.example.wallet.repository.WalletRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class WalletService {
@@ -41,15 +43,30 @@ public class WalletService {
      * Method ini harus menambahkan poin ke wallet. Jika wallet user belum ada, buat wallet baru dengan status aktif.
      * Harus berjalan dalam boundary transaksi.
      * Catat transaksi dengan tipe EARN.
-     */
+    */
     // TODO: Tambahkan anotasi untuk boundary transaksi pada method ini
+    @Transactional
     public Wallet earnPoints(String userId, EarnRequest request) {
         // TODO: Implementasikan logika earn
         // 1. Ambil atau buat wallet (status default: ACTIVE, saldo awal default: 0)
         // 2. Tambahkan amount dari request ke saldo wallet
         // 3. Simpan wallet
         // 4. Simpan entity Transaction baru untuk mencatat operasi ini (tipe: EARN, deskripsi: campaign)
-        return null;
+        Wallet wallet = walletRepository.findByUserId(userId)
+                .orElseGet(() -> new Wallet(userId, BigDecimal.ZERO, WalletStatus.ACTIVE));
+
+        wallet.setBalance(wallet.getBalance().add(request.amount()));
+        Wallet savedWallet = walletRepository.save(wallet);
+
+        transactionRepository.save(new Transaction(
+                savedWallet,
+                request.amount(),
+                TransactionType.EARN,
+                LocalDateTime.now(),
+                request.campaign()
+        ));
+
+        return savedWallet;
     }
 
     /**
@@ -65,8 +82,9 @@ public class WalletService {
      * Aturan konkurensi:
      * - Pastikan method ini aman untuk operasi spend/earn yang berjalan bersamaan pada wallet yang sama.
      * - Hint: Gunakan locking saat membaca data dari repository.
-     */
+    */
     // TODO: Tambahkan anotasi untuk boundary transaksi pada method ini
+    @Transactional
     public Wallet spendPoints(String userId, SpendRequest request) {
         // TODO: Implementasikan logika spend
         // 1. Ambil wallet dengan lock (contoh: Pessimistic Write) untuk mencegah race condition
@@ -74,7 +92,36 @@ public class WalletService {
         // 3. Kurangi saldo wallet dengan amount dari request
         // 4. Simpan wallet
         // 5. Simpan entity Transaction baru untuk mencatat operasi ini (tipe: SPEND, deskripsi: merchant category)
-        return null;
+        Wallet wallet = walletRepository.findByUserIdForUpdate(userId)
+                .orElseThrow(() -> new WalletNotFoundException("Wallet not found for user: " + userId));
+
+        if (wallet.getStatus() != WalletStatus.ACTIVE) {
+            throw new WalletBlockedException("Wallet is blocked for user: " + userId);
+        }
+
+        BigDecimal amount = request.amount();
+        if (amount.compareTo(walletProperties.getMinSpendAmount()) < 0
+                || amount.compareTo(walletProperties.getMaxSpendAmount()) > 0) {
+            throw new IllegalArgumentException("Spend amount must be between "
+                    + walletProperties.getMinSpendAmount() + " and " + walletProperties.getMaxSpendAmount());
+        }
+
+        if (wallet.getBalance().compareTo(amount) < 0) {
+            throw new InsufficientFundsException("Insufficient funds in wallet");
+        }
+
+        wallet.setBalance(wallet.getBalance().subtract(amount));
+        Wallet savedWallet = walletRepository.save(wallet);
+
+        transactionRepository.save(new Transaction(
+                savedWallet,
+                amount,
+                TransactionType.SPEND,
+                LocalDateTime.now(),
+                request.merchantCategory()
+        ));
+
+        return savedWallet;
     }
 
     /**
@@ -89,7 +136,17 @@ public class WalletService {
     public BigDecimal calculateProcessingFee(TransactionRequest request) {
         // TODO: Implementasikan menggunakan ekspresi switch pattern matching Java 21.
         // Hint: Lakukan switch pada parameter request, cocokkan berdasarkan record type. Gunakan klausa "when" untuk pengecekan amount.
-        return BigDecimal.ZERO;
+        return switch (request) {
+            case EarnRequest ignored -> BigDecimal.ZERO;
+
+            case SpendRequest(BigDecimal amount, String merchantCategory) when amount.compareTo(BigDecimal.valueOf(100)) > 0 ->
+                    amount.multiply(new BigDecimal("0.01"));
+
+            case SpendRequest(BigDecimal amount, String merchantCategory) -> new BigDecimal("0.50");
+
+            case RefundRequest(BigDecimal amount, String originalTransactionId) ->
+                    amount.multiply(new BigDecimal("0.02"));
+        };
     }
 
     /**
@@ -99,7 +156,21 @@ public class WalletService {
      */
     public Map<TransactionType, BigDecimal> getTransactionSummary(String userId) {
         // TODO: Implementasikan agregasi stream
-        return Map.of();
+        Map<TransactionType, BigDecimal> summary = transactionRepository.findByWalletUserIdOrderByTimestampDesc(userId).stream()
+                .collect(Collectors.groupingBy(
+                        Transaction::getType,
+                        Collectors.reducing(
+                                BigDecimal.ZERO,
+                                Transaction::getAmount,
+                                BigDecimal::add
+                        )
+                ));
+
+        for (TransactionType type : TransactionType.values()) {
+            summary.putIfAbsent(type, BigDecimal.ZERO);
+        }
+
+        return summary;
     }
 
     /**
