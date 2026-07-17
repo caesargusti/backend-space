@@ -13,9 +13,7 @@ public class GlobalExceptionHandler {
 
     // TODO: Tangani WalletNotFoundException
     // Requirement: Return HTTP 404 (Not Found) dengan ErrorResponse: code="WALLET_NOT_FOUND", message=pesan exception
-    public ResponseEntity<ErrorResponse> handleWalletNotFound(WalletNotFoundException ex) {
-        return null;
-    }
+    public ResponseEntity<ErrorResponse> handleWalletNotFound(WalletNotFoundException ex) { return null; }
 
     // TODO: Tangani InsufficientFundsException
     // Requirement: Return HTTP 422 (Unprocessable Entity) dengan ErrorResponse: code="INSUFFICIENT_FUNDS", message=pesan exception

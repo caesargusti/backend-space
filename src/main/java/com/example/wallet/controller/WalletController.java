@@ -4,6 +4,7 @@ import com.example.wallet.dto.*;
 import com.example.wallet.model.TransactionType;
 import com.example.wallet.model.Wallet;
 import com.example.wallet.service.WalletService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 
 // TODO: Tambahkan anotasi class ini sebagai REST Controller dengan base path "/api/wallets"
+@RestController
+@RequestMapping("/api/wallets")
 public class WalletController {
 
     private final WalletService walletService;
@@ -22,8 +25,10 @@ public class WalletController {
 
     // TODO: Implementasikan GET /{userId}
     // Mengambil detail wallet untuk user. Return HTTP 200 dengan WalletResponse.
-    public ResponseEntity<WalletResponse> getWallet(String userId) {
-        return null;
+    @GetMapping("/{userId}")
+    public ResponseEntity<WalletResponse> getWallet(@RequestParam String userId) {
+        Wallet data = walletService.getWallet(userId);
+        return ResponseEntity.ok(mapToResponse(data));
     }
 
     // TODO: Implementasikan POST /{userId}/earn

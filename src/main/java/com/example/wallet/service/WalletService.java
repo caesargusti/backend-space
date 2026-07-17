@@ -89,6 +89,15 @@ public class WalletService {
     public BigDecimal calculateProcessingFee(TransactionRequest request) {
         // TODO: Implementasikan menggunakan ekspresi switch pattern matching Java 21.
         // Hint: Lakukan switch pada parameter request, cocokkan berdasarkan record type. Gunakan klausa "when" untuk pengecekan amount.
+        if (request instanceof SpendRequest spendRequest) {
+            if (spendRequest.amount().compareTo(BigDecimal.valueOf(100)) > 0) {
+                return spendRequest.amount().multiply(BigDecimal.valueOf(0.01));
+            } else {
+                return BigDecimal.valueOf(0.50);
+            }
+        } else if (request instanceof RefundRequest refundRequest) {
+            return refundRequest.amount().multiply(BigDecimal.valueOf(0.02));
+        }
         return BigDecimal.ZERO;
     }
 
